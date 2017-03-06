@@ -1,17 +1,15 @@
 package cn.tedu.shoot;
 
 import java.awt.Graphics;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
-
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
-
-import org.omg.CORBA.PUBLIC_MEMBER;
-
 import javax.swing.JFrame;
 
 
@@ -86,7 +84,26 @@ public class ShootGame extends JPanel{
 		}
 	}
 	public void outOfBoundsAction() {
-		
+		int index = 0;
+		AirplaneObject[] flyingLives = new AirplaneObject[flyings.length];
+		for(int i=0;i<flyings.length;i++) {
+			AirplaneObject f = flyings[i];
+			if(!f.outOfBounds()) {
+				flyingLives[index] = f;
+				index++;
+			}
+		}
+		flyings = Arrays.copyOf(flyingLives, index);
+		index = 0;
+		Bullet[] bulletsLives = new Bullet[bullets.length];
+		for(int i=0;i<bullets.length;i++) {
+			Bullet b = bullets[i];
+			if(!b.outOfBounds()) {
+				bulletsLives[index] = b;
+				index++;
+			}
+		}
+		bullets = Arrays.copyOf(bulletsLives, index);
 	}
 	
 	public void paint(Graphics g) {
@@ -111,6 +128,15 @@ public class ShootGame extends JPanel{
 		}
 	}
 	public void action() {
+		MouseAdapter l = new MouseAdapter() {
+			public void moveTo(MouseEvent e) {
+				int x = e.getX();
+				int y = e.getY();
+				hero.moveTo(x, y);
+			}
+		};
+		this.addMouseListener(l);
+		this.addMouseMotionListener(l);
 		Timer timer = new Timer();
 		int intervel = 10;
 		timer.schedule(new TimerTask() {
@@ -121,9 +147,7 @@ public class ShootGame extends JPanel{
 			outOfBoundsAction();
 			repaint();	
 			}
-		},intervel,intervel);
-	
-		
+		},intervel,intervel);	
 	}
 
 	public static void main(String[] args) {

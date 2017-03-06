@@ -18,6 +18,6 @@ public class Bullet extends AirplaneObject{
 
 	@Override
 	public boolean outOfBounds() {
-		return this.y <= ShootGame.HEIGHT;
+		return this.y <= this.height;
 	}
 }
