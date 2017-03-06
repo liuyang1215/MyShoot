@@ -17,9 +17,23 @@ public class Bee extends AirplaneObject implements Award{
 		height = image.getHeight();
 		Random rand = new Random();
 		x = rand.nextInt(ShootGame.WIDTH - this.width);
-		y = -this.height;
-		awardType = rand.nextInt(2);
-		
+		y = this.height;
+		awardType = rand.nextInt(2);		
+	}
+	@Override
+	public void step() {
+		x += xSpeed;
+		y += ySpeed;
+		if(x >= ShootGame.WIDTH - this.width) {
+			xSpeed = -1;
+		}
+		if(x <= 0) {
+			xSpeed = 1;
+		}
+	}
+	@Override
+	public boolean outOfBounds() {
+		return this.y >= ShootGame.HEIGHT;
 	}
 
 }

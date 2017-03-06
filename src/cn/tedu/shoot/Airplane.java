@@ -15,7 +15,14 @@ public class Airplane extends AirplaneObject implements Enemy{
 		height = image.getHeight();
 		Random rand = new Random();
 		x = rand.nextInt(ShootGame.WIDTH - this.width);
-		y = -this.height;
+		y = this.height;
 	}
-
+	@Override
+	public void step() {
+		y += speed;		
+	}
+	@Override
+	public boolean outOfBounds() {
+		return this.y >= ShootGame.HEIGHT; 
+	}
 }

@@ -11,4 +11,13 @@ public class Bullet extends AirplaneObject{
 		this.y = y;
 	}
 
+	@Override
+	public void step() {
+		y -= speed;		
+	}
+
+	@Override
+	public boolean outOfBounds() {
+		return this.y <= ShootGame.HEIGHT;
+	}
 }
