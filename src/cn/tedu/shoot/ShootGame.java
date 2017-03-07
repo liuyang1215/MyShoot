@@ -12,11 +12,10 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.JFrame;
 
-
-public class ShootGame extends JPanel{
+public class ShootGame extends JPanel {
 	public static final int WIDTH = 400;
 	public static final int HEIGHT = 654;
-	
+
 	public static BufferedImage background;
 	public static BufferedImage airplane;
 	public static BufferedImage bee;
@@ -26,7 +25,7 @@ public class ShootGame extends JPanel{
 	public static BufferedImage hero1;
 	public static BufferedImage pause;
 	public static BufferedImage start;
-	
+
 	static {
 		try {
 			background = ImageIO.read(ShootGame.class.getResource("background.png"));
@@ -38,57 +37,62 @@ public class ShootGame extends JPanel{
 			hero1 = ImageIO.read(ShootGame.class.getResource("hero1.png"));
 			pause = ImageIO.read(ShootGame.class.getResource("pause.png"));
 			start = ImageIO.read(ShootGame.class.getResource("start.png"));
-		}catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	private Hero hero = new Hero();
 	private Bullet[] bullets = {};
 	private AirplaneObject[] flyings = {};
-	
-	public AirplaneObject nextOne() {	
+
+	public AirplaneObject nextOne() {
 		Random rand = new Random();
 		int type = rand.nextInt(25);
-		if(type < 6) {
+		if (type < 6) {
 			return new Bee();
 		} else {
 			return new Airplane();
 		}
 	}
-	
+
 	int flyEnterIndex = 0;
+
 	public void enterAction() {
 		flyEnterIndex++;
-		if(flyEnterIndex % 40 == 0) {
+		if (flyEnterIndex % 40 == 0) {
 			AirplaneObject obj = nextOne();
 			flyings = Arrays.copyOf(flyings, flyings.length + 1);
 			flyings[flyings.length - 1] = obj;
 		}
 	}
+
 	public void stepAction() {
 		hero.step();
-		for(int i=0;i<bullets.length;i++) {
+		for (int i = 0; i < bullets.length; i++) {
 			bullets[i].step();
 		}
-		for(int i=0;i<flyings.length;i++) {
+		for (int i = 0; i < flyings.length; i++) {
 			flyings[i].step();
 		}
 	}
+
 	int shootIndex = 0;
+
 	public void shootAction() {
 		shootIndex++;
-		if(shootIndex % 30 == 0) {
+		if (shootIndex % 30 == 0) {
 			Bullet[] bs = hero.shoot();
 			bullets = Arrays.copyOf(bullets, bullets.length + bs.length);
 			System.arraycopy(bs, 0, bullets, bullets.length - bs.length, bs.length);
 		}
 	}
+
 	public void outOfBoundsAction() {
 		int index = 0;
 		AirplaneObject[] flyingLives = new AirplaneObject[flyings.length];
-		for(int i=0;i<flyings.length;i++) {
+		for (int i = 0; i < flyings.length; i++) {
 			AirplaneObject f = flyings[i];
-			if(!f.outOfBounds()) {
+			if (!f.outOfBounds()) {
 				flyingLives[index] = f;
 				index++;
 			}
@@ -96,40 +100,97 @@ public class ShootGame extends JPanel{
 		flyings = Arrays.copyOf(flyingLives, index);
 		index = 0;
 		Bullet[] bulletsLives = new Bullet[bullets.length];
-		for(int i=0;i<bullets.length;i++) {
+		for (int i = 0; i < bullets.length; i++) {
 			Bullet b = bullets[i];
-			if(!b.outOfBounds()) {
+			if (!b.outOfBounds()) {
 				bulletsLives[index] = b;
 				index++;
 			}
 		}
 		bullets = Arrays.copyOf(bulletsLives, index);
 	}
-	
+
+	public void bangAction() {
+		for (int i = 0; i < bullets.length; i++) {
+			Bullet b = bullets[i];
+			if (bang(b)) {
+				bullets[i] = bullets[bullets.length - 1];
+				bullets[bullets.length - 1] = b;
+				bullets = Arrays.copyOf(bullets, bullets.length - 1);
+			}
+		}
+	}
+
+	int score = 0;
+
+	public boolean bang(Bullet b) {
+		int index = -1;
+		boolean bangbang = false;
+
+		for (int i = 0; i < flyings.length; i++) {
+			AirplaneObject obj = flyings[i];
+			if (obj.shootBy(b)) {
+				index = i;
+				bangbang = true;
+				break;
+			}
+		}
+
+		if (index != -1) {
+			AirplaneObject one = flyings[index];
+			AirplaneObject t = flyings[index];
+			flyings[index] = flyings[flyings.length - 1];
+			flyings[flyings.length - 1] = t;
+			flyings = Arrays.copyOf(flyings, flyings.length - 1);
+			if (one instanceof Enemy) {
+				Enemy e = (Enemy) one;
+				score += e.getScore();
+			} else if (one instanceof Award) {
+				Award a = (Award) one;
+				int type = a.getType();
+				switch (type) {
+				case Award.DOUBLE_FIRE:
+					hero.addDoubleFire();
+					break;
+
+				case Award.LIFE:
+					hero.addLife();
+					break;
+				}
+			}
+		}
+
+		return bangbang;
+	}
+
 	public void paint(Graphics g) {
 		g.drawImage(background, 0, 0, null);
 		paintHero(g);
 		paintBullet(g);
 		paintAirplaneObject(g);
 	}
+
 	public void paintHero(Graphics g) {
 		g.drawImage(hero.image, hero.x, hero.y, null);
 	}
+
 	public void paintBullet(Graphics g) {
-		for(int i=0;i<bullets.length;i++) {
+		for (int i = 0; i < bullets.length; i++) {
 			Bullet b = bullets[i];
-			g.drawImage(b.image, b.x,b.y, null); 
+			g.drawImage(b.image, b.x, b.y, null);
 		}
 	}
+
 	public void paintAirplaneObject(Graphics g) {
-		for(int i=0;i<flyings.length;i++) {
+		for (int i = 0; i < flyings.length; i++) {
 			AirplaneObject f = flyings[i];
-			g.drawImage(f.image,f.x, f.y, null);
+			g.drawImage(f.image, f.x, f.y, null);
 		}
 	}
+
 	public void action() {
 		MouseAdapter l = new MouseAdapter() {
-			public void moveTo(MouseEvent e) {
+			public void mouseMoved(MouseEvent e) {
 				int x = e.getX();
 				int y = e.getY();
 				hero.moveTo(x, y);
@@ -141,13 +202,14 @@ public class ShootGame extends JPanel{
 		int intervel = 10;
 		timer.schedule(new TimerTask() {
 			public void run() {
-			enterAction();
-			stepAction();
-			shootAction();
-			outOfBoundsAction();
-			repaint();	
+				enterAction();
+				stepAction();
+				shootAction();
+				outOfBoundsAction();
+				bangAction();
+				repaint();
 			}
-		},intervel,intervel);	
+		}, intervel, intervel);
 	}
 
 	public static void main(String[] args) {
@@ -159,7 +221,7 @@ public class ShootGame extends JPanel{
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
-		
+
 		game.action();
 
 	}

@@ -41,12 +41,18 @@ public class Hero extends AirplaneObject{
 		}
 	}
 	public void moveTo(int x,int y) {
-		this.x = x - this.width/2;
-		this.y = y - this.height/2;
+		this.x = x - width/2;
+		this.y = y - height/2;
 	}
 
 	@Override
 	public boolean outOfBounds() {
 		return false;
+	}
+	public void addLife() {
+		life++;
+	}
+	public void addDoubleFire() {
+		doubleFire = 40;
 	}
 }

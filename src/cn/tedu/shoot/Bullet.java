@@ -20,4 +20,6 @@ public class Bullet extends AirplaneObject{
 	public boolean outOfBounds() {
 		return this.y <= this.height;
 	}
+	
+	
 }
