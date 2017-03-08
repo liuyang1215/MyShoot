@@ -12,7 +12,7 @@ public class Hero extends AirplaneObject{
 	
 	public Hero() {
 		doubleFire = 0;
-		life = 1;
+		life = 3;
 		images = new BufferedImage[]{ShootGame.hero0,ShootGame.hero1};
 		image = ShootGame.hero0;
 		width = image.getWidth();
@@ -52,7 +52,25 @@ public class Hero extends AirplaneObject{
 	public void addLife() {
 		life++;
 	}
+	public void subtractLife() {
+		life--;
+	}
 	public void addDoubleFire() {
-		doubleFire = 40;
+		doubleFire += 40;
+	}
+	public void clearDoubleFire() {
+		doubleFire = 0;
+	}
+	public int getLife() {
+		return life;
+	}
+	public boolean hit(AirplaneObject other) {
+		int x1 = other.x - this.width/2;
+		int x2 = other.x + this.width/2 + other.width;
+		int y1 = other.y - this.height/2;
+		int y2 = other.y + this.height/2 + other.height;
+		int x = this.x - this.width/2;
+		int y = this.y - this.height/2;
+		return x <= x2 && x >=x1 && y <= y2 && y >= y1;
 	}
 }

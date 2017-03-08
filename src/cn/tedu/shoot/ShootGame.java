@@ -1,5 +1,7 @@
 package cn.tedu.shoot;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -44,6 +46,13 @@ public class ShootGame extends JPanel {
 	private Hero hero = new Hero();
 	private Bullet[] bullets = {};
 	private AirplaneObject[] flyings = {};
+	
+	public static final int START = 0;
+	public static final int RUNNING = 1;
+	public static final int PAUSE = 2;
+	public static final int GAME_OVER = 3;
+	
+	int state = START;
 
 	public AirplaneObject nextOne() {
 		Random rand = new Random();
@@ -162,12 +171,15 @@ public class ShootGame extends JPanel {
 
 		return bangbang;
 	}
+	
 
 	public void paint(Graphics g) {
 		g.drawImage(background, 0, 0, null);
 		paintHero(g);
 		paintBullet(g);
 		paintAirplaneObject(g);
+		paintScoreAndLife(g);
+		paintState(g);
 	}
 
 	public void paintHero(Graphics g) {
@@ -187,13 +199,84 @@ public class ShootGame extends JPanel {
 			g.drawImage(f.image, f.x, f.y, null);
 		}
 	}
+	
+	public void paintScoreAndLife(Graphics g) {
+		g.setColor(Color.red);
+		g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
+		g.drawString("SCORE:"+score,10,25);
+		g.drawString("LIFE:"+hero.getLife(), 10, 45);
+	}
+	public void paintState(Graphics g) {
+		switch (state) {
+		case START:
+			g.drawImage(start, 0, 0, null);
+			break;
+		case PAUSE:
+			g.drawImage(pause, 0, 0, null);
+			break;
+		case GAME_OVER:
+			g.drawImage(gameover, 0, 0, null);
+			break;
+		}
+	}
+	public void checkGameOverAction() {
+		if(isGameOver()) {
+			state = GAME_OVER;
+		}
+	}
+	public boolean isGameOver() {
+		int index = -1;
+		for(int i=0;i<flyings.length;i++) {
+			AirplaneObject object = flyings[i];
+			if(hero.hit(object)) {
+				hero.subtractLife();
+				hero.clearDoubleFire();
+				index = i;
+			}
+			if(index != -1) {
+				AirplaneObject  t = flyings[index];
+				flyings[index] = flyings[flyings.length - 1];
+				flyings[flyings.length - 1] = t;
+				
+				flyings = Arrays.copyOf(flyings, flyings.length -1);
+ 			}
+		}
+		return (hero.getLife() <= 0);
+	}
 
 	public void action() {
 		MouseAdapter l = new MouseAdapter() {
 			public void mouseMoved(MouseEvent e) {
-				int x = e.getX();
-				int y = e.getY();
-				hero.moveTo(x, y);
+				if(state == RUNNING) {
+					int x = e.getX();
+					int y = e.getY();
+					hero.moveTo(x, y);
+				}
+			}
+			public void mouseClicked(MouseEvent e) {
+				switch (state) {
+				case START:
+					state = RUNNING;
+					break;
+
+				case GAME_OVER:
+					bullets = new Bullet[0];
+					flyings = new AirplaneObject[0];
+					hero = new Hero();
+					score = 0;
+					state = START;
+					break;
+				}
+			}
+			public void mouseExited(MouseEvent e) {
+				if(state == RUNNING) {
+					state = PAUSE;
+				}
+			}
+			public void mouseEntered(MouseEvent e) {
+				if(state == PAUSE) {
+					state = RUNNING;
+				}
 			}
 		};
 		this.addMouseListener(l);
@@ -202,11 +285,14 @@ public class ShootGame extends JPanel {
 		int intervel = 10;
 		timer.schedule(new TimerTask() {
 			public void run() {
-				enterAction();
-				stepAction();
-				shootAction();
-				outOfBoundsAction();
-				bangAction();
+				if(state == RUNNING) {
+					enterAction();
+					stepAction();
+					shootAction();
+					outOfBoundsAction();
+					bangAction();
+					checkGameOverAction();
+				}
 				repaint();
 			}
 		}, intervel, intervel);
